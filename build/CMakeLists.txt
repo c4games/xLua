@@ -141,17 +141,6 @@ list(APPEND THIRDPART_INC zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
 set (THIRDPART_SRC ${THIRDPART_SRC} ${FSNI_SRC})
 #end fsni
 
-if (XLUA_BUILD_WITH_CARES)
-    #begin c-ares
-    set(CARES_STATIC ON CACHE BOOL "Build c-ares as static library" FORCE)
-    set(CARES_SHARED OFF CACHE BOOL "Build c-ares as shared library" FORCE)
-    set(CARES_BUILD_TOOLS OFF CACHE BOOL "Build c-ares tools" FORCE)
-    set(CARES_INSTALL OFF CACHE BOOL "Create installation targets (chain builders may want to disable this)" FORCE)
-    add_subdirectory(c-ares)
-    include_directories($<TARGET_FILE_DIR:c-ares>)
-    #end c-ares
-endif ()
-
 if (USING_LUAJIT)
 	
     if (APPLE AND NOT IOS AND NOT ANDROID)
@@ -292,6 +281,20 @@ else ( )
         ${THIRDPART_SRC}
     )
 endif ( )
+
+if (XLUA_BUILD_WITH_CARES)
+    #begin c-ares
+    set(CARES_STATIC ON CACHE BOOL "Build c-ares as static library" FORCE)
+    set(CARES_SHARED OFF CACHE BOOL "Build c-ares as shared library" FORCE)
+    set(CARES_BUILD_TOOLS OFF CACHE BOOL "Build c-ares tools" FORCE)
+    set(CARES_INSTALL OFF CACHE BOOL "Create installation targets (chain builders may want to disable this)" FORCE)
+    if(CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES "${CMAKE_OSX_ARCHITECTURES}" CACHE STRING "Passing osx arch to c-ares" FORCE)
+    endif()
+    add_subdirectory(c-ares)
+    include_directories($<TARGET_FILE_DIR:c-ares>)
+    #end c-ares
+endif ()
 
 if ( WIN32 AND NOT CYGWIN )
     target_compile_definitions (xlua PRIVATE LUA_BUILD_AS_DLL)
