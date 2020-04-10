@@ -179,6 +179,10 @@ static fsni_context* s_fsni_ctx = nullptr;
 extern "C" {
     FSNI_API void fsni_startup(const char* streamingPath/*internal path*/, const char* persistPath/*hot update path*/)
     {
+        if (s_fsni_ctx) {
+            FSNI_LOGD("fsni_startup ---> fsni context already initialized!");
+            return;
+        }
         s_fsni_ctx = new fsni_context();
         s_fsni_ctx->streamingPath = streamingPath;
         s_fsni_ctx->persistPath = persistPath;
