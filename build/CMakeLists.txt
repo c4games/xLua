@@ -61,6 +61,13 @@ set (YASIO_SRC
     yasio/yasio/bindings/lyasio.cpp
     yasio/yasio/bindings/yasio_ni.cpp
 )
+
+if (XLUA_BUILD_WITH_CARES AND ANDROID)
+   set (YASIO_SRC ${YASIO_SRC}
+    yasio/yasio/bindings/yasio_jni.cpp
+   )
+endif()
+
 set_property(
     SOURCE ${YASIO_SRC}
     APPEND
