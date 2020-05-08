@@ -42,7 +42,7 @@ set(LUAJIT_SRC_PATH luajit-2.1.0b3/src)
 
 #begin yasio
 if (NOT WIN32 OR CYGWIN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 
 if (ANDROID)
