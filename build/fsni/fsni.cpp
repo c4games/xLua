@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <thread>
 #include <mutex>
+#include <algorithm>
 
 // memcpy
 #include <string.h>
