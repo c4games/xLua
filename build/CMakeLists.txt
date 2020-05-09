@@ -391,9 +391,11 @@ else()
     endif()
 endif()
 
-# !!!important pitfall: fix default lua_newuserdata can't return aligned pointer properly
-# will crash at clang release optimized build if no follow definiation
-target_compile_definitions (xlua PUBLIC LUAI_USER_ALIGNMENT_T=max_align_t)
+if (NOT MSVC)
+    # !!!important pitfall: fix default lua_newuserdata can't return aligned pointer properly
+    # will crash at clang release optimized build if no follow definiation
+    target_compile_definitions (xlua PUBLIC LUAI_USER_ALIGNMENT_T=max_align_t)
+endif()
 
 # zlib
 set(ZLIB_BUILD_STATIC ON CACHE BOOL "Build zlib static library" FORCE)
