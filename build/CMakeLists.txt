@@ -41,10 +41,6 @@ set(LUA_SRC_PATH lua-5.3.5/src)
 set(LUAJIT_SRC_PATH luajit-2.1.0b3/src)
 
 #begin yasio
-if (NOT WIN32 OR CYGWIN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-endif()
-
 if (ANDROID)
     if (NOT THIRDPART_LIB)
         set(THIRDPART_LIB "-llog")
@@ -373,6 +369,13 @@ if (ANDROID AND ANDROID_STRIP_EXEC)
     add_custom_command(TARGET xlua POST_BUILD
         COMMAND ${ANDROID_STRIP_EXEC} ${PROJECT_BINARY_DIR}/libxlua.so -o ${PROJECT_BINARY_DIR}/libxlua.so
     )
+endif()
+
+# c++ standard
+if (NOT WIN32 OR CYGWIN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+else()
+    target_compile_features(xlua PUBLIC cxx_std_17)
 endif()
 
 # zlib
