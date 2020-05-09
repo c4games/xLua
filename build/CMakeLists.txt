@@ -23,7 +23,7 @@ option ( LUAC_COMPAT_32BIT "compatible official 32bit byte code format" ON )
 option ( LUA_COMPAT_MODULE "compat module" ON)
 option ( USING_LPB "using lua-protobuf instead protoc-gen-lua" ON)
 option ( XLUA_BUILD_WITH_CARES "build with c-ares support" OFF)
-option ( XLUA_BUILD_WITH_CXX17 "build with c++17 support" ON)
+option ( XLUA_BUILD_WITH_CXX17 "build with c++17 support" OFF)
 
 find_path(XLUA_PROJECT_DIR NAMES SConstruct
     PATHS 
@@ -390,6 +390,10 @@ else()
         target_compile_features(xlua PUBLIC cxx_std_17)
     endif()
 endif()
+
+# !!!important pitfall: fix default lua_newuserdata can't return aligned pointer properly
+# will crash at clang release optimized build if no follow definiation
+target_compile_definitions (xlua PUBLIC LUAI_USER_ALIGNMENT_T=max_align_t)
 
 # zlib
 set(ZLIB_BUILD_STATIC ON CACHE BOOL "Build zlib static library" FORCE)
