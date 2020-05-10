@@ -23,7 +23,10 @@ option ( LUAC_COMPAT_32BIT "compatible official 32bit byte code format" ON )
 option ( LUA_COMPAT_MODULE "compat module" ON)
 option ( USING_LPB "using lua-protobuf instead protoc-gen-lua" ON)
 option ( XLUA_BUILD_WITH_CARES "build with c-ares support" OFF)
-option ( XLUA_BUILD_WITH_CXX17 "build with c++17 support" OFF)
+
+if (NOT XLUA_BUILD_CXX_STD)
+    set(XLUA_BUILD_CXX_STD 11)
+endif()
 
 find_path(XLUA_PROJECT_DIR NAMES SConstruct
     PATHS 
@@ -367,27 +370,34 @@ if (ANDROID AND ANDROID_STRIP_EXEC)
     )
 endif()
 
-# compiler flags
+# --- The compiler flags
+message("-- Building yasio with cpp${XLUA_BUILD_CXX_STD} support")
 if ( IOS )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fembed-bitcode")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fembed-bitcode")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
 endif ()
 if (NOT WIN32 OR CYGWIN)
-    if(XLUA_BUILD_WITH_CXX17)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-      if(IOS)
-          # Aligned deallocation function of type 'void (void *, std::align_val_t) noexcept' is only available on iOS 11 or newer
-          # most of time, low level malloc will alloc a aligned address for new operator,
-          # so it's ok to add -faligned-allocation, certainly, my need find a ios9.0 device
-          # to test does it works well
-          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-allocation")
-      endif()
+    if (XLUA_BUILD_CXX_STD EQUAL 17)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
+        if ( IOS )
+            # Aligned deallocation function of type 'void (void *, std::align_val_t) noexcept' is only available on iOS 11 or newer
+            # most of time, low level malloc will alloc a aligned address for new operator,
+            # so it's ok to add -faligned-allocation, certainly, still need find a ios9.0 device
+            # to test does it works well?
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-allocation")
+        endif()
+    elseif(XLUA_BUILD_CXX_STD EQUAL 14)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
     else()
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     endif()
 else()
-    if(XLUA_BUILD_WITH_CXX17)
-        target_compile_features(xlua PUBLIC cxx_std_17)
+    if(XLUA_BUILD_CXX_STD EQUAL 17)
+        # target_compile_features(yasio PUBLIC cxx_std_17) works
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+    elseif(XLUA_BUILD_CXX_STD EQUAL 14)
+        # target_compile_features(yasio PUBLIC cxx_std_14) not works
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
     endif()
 endif()
 
