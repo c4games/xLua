@@ -406,7 +406,7 @@ extern "C" {
             if (flags & 1)
                 found = !(attr & FILE_ATTRIBUTE_DIRECTORY);
             if (flags & 2)
-                found = (attr & FILE_ATTRIBUTE_DIRECTORY);
+                found = found || (attr & FILE_ATTRIBUTE_DIRECTORY);
         }
 #else
         struct stat st;
@@ -415,7 +415,7 @@ extern "C" {
             if (flags & 1)
                 found = S_ISREG(st.st_mode);
             if (flags & 2)
-                found = S_ISDIR(st.st_mode);;
+                found = found || S_ISDIR(st.st_mode);;
         }
 #endif
         // check android, from apk
