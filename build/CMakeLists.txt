@@ -371,7 +371,7 @@ if (ANDROID AND ANDROID_STRIP_EXEC)
 endif()
 
 # --- The compiler flags
-message("-- Building yasio with cpp${XLUA_BUILD_CXX_STD} support")
+message("-- Building xlua with cpp${XLUA_BUILD_CXX_STD} support")
 if ( IOS )
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fembed-bitcode")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
