@@ -105,6 +105,33 @@ void fsni_splitpath(_Elem* s, _Fn func) // will convert '\\' to '/'
     _fsni_splitpath(s, [=](_Elem* _Ptr) {return *_Ptr != '\0'; }, func);
 }
 
+inline static bool fsni_is_absolute(const char* path) {
+    return (path[0] == '/' || (isalpha(path[0]) && path[1] == ':'));
+}
+
+inline static bool fsni_exists_internal(const char* path, int flags) {
+    bool found = false;
+#if defined(_WIN32)
+    DWORD attr = GetFileAttributesA(path);
+    if (attr != INVALID_FILE_ATTRIBUTES) {
+        if (flags & fsni_chkflags::file)
+            found = !(attr & FILE_ATTRIBUTE_DIRECTORY);
+        if (flags & fsni_chkflags::directory)
+            found = found || (attr & FILE_ATTRIBUTE_DIRECTORY);
+    }
+#else
+    struct stat st;
+    if (::stat(path, &st) == 0)
+    {
+        if (flags & fsni_chkflags::file)
+            found = S_ISREG(st.st_mode);
+        if (flags & fsni_chkflags::directory)
+            found = found || S_ISDIR(st.st_mode);;
+    }
+#endif
+    return found;
+}
+
 static void fsni_mkdir(std::string dir)
 {
     if (dir.empty()) return;
@@ -112,7 +139,7 @@ static void fsni_mkdir(std::string dir)
     fsni_splitpath(&dir.front(), [](const char* subdir) {
         bool should_brk = false;
 
-        if (!fsni_exists(subdir, fsni_chkflags::directory))
+        if (!fsni_exists_internal(subdir, fsni_chkflags::directory))
         {
 #ifdef _WIN32
             should_brk = !(0 == ::mkdir(subdir));
@@ -221,7 +248,7 @@ extern "C" {
 
         int internalError = 0, error = 0;
 
-        bool absolute = (fileName[0] == '/' || (isalpha(fileName[0]) && fileName[1] == ':'));
+        bool absolute = fsni_is_absolute(fileName);
 
         // try open from hot update path disk
         std::string fullPath;
@@ -397,33 +424,29 @@ extern "C" {
     {
         return ::rename(oldName, newName);
     }
+
     bool fsni_exists(const char* path, int flags)
     {
-        bool found = false;
-#if defined(_WIN32)
-        DWORD attr = GetFileAttributesA(path);
-        if (attr != INVALID_FILE_ATTRIBUTES) {
-            if (flags & 1)
-                found = !(attr & FILE_ATTRIBUTE_DIRECTORY);
-            if (flags & 2)
-                found = found || (attr & FILE_ATTRIBUTE_DIRECTORY);
+        // process path, prefer external storage persistPath firstly, hot update
+        std::string fullPathStorage;
+        if ((flags & fsni_chkflags::relative) || !fsni_is_absolute(path))
+        { // no absolute
+            fullPathStorage = s_fsni_ctx->persistPath + path;
+            if(fsni_exists_internal(fullPathStorage.c_str(), flags))
+                return true;
+            
+            // finally, if persistPath not exist, check application internal path, android apk/ios streamingPath
+            if (s_fsni_ctx->zip) {
+                return s_fsni_ctx->zip.exists(path);
+            }
+            else { // ios internal path
+                fullPathStorage = s_fsni_ctx->streamingPath + path;
+                return fsni_exists_internal(fullPathStorage.c_str(), flags);
+            }
         }
-#else
-        struct stat st;
-        if (::stat(path, &st) == 0)
-        {
-            if (flags & 1)
-                found = S_ISREG(st.st_mode);
-            if (flags & 2)
-                found = found || S_ISDIR(st.st_mode);;
-        }
-#endif
-        // check android, from apk
-        if (!found && s_fsni_ctx->zip) {
-            found = s_fsni_ctx->zip.exists(path);
-        }
-
-        return found;
+        
+        // absolute, check directly
+        return fsni_exists_internal(path, flags);
     }
 
     FSNI_API voidp fsni_alloc(int size) {

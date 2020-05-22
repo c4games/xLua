@@ -24,7 +24,7 @@ THE SOFTWARE.
 #ifndef _FSNI_H_
 #define _FSNI_H_
 
-#define FSNI_VER "1.1.3"
+#define FSNI_VER "1.1.6"
 
 #if defined(_WINDLL)
 #  if defined(LUA_LIB)
@@ -98,6 +98,7 @@ namespace fsni_chkflags {
     enum {
         file = 1,
         directory = 1 << 1,
+        relative = 1 << 2,
     };
 }
 namespace fsni_mode {
@@ -136,7 +137,7 @@ extern "C" {
     FSNI_API voidp fsni_memdup(const voidp p, int size);
 
     /*
-    @flags: 1: check file exists, 2: check directory exists, 3: check file or directory exists
+    @flags: see fsni_chkflags
     @see: fsni_chkflags
     */
     FSNI_API bool fsni_exists(const char* path, int flags);
