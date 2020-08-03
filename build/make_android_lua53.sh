@@ -34,11 +34,17 @@ else
 	STRIP_PATH=$ANDROID_NDK/toolchains/x86-4.9/prebuilt/darwin-x86_64/bin/i686-linux-android-strip
 fi
 
-mkdir -p build_x86 && cd build_x86
-cmake -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI=x86 -DCMAKE_TOOLCHAIN_FILE=$TOOL_CHAIN_PATH/cmake/android.toolchain.cmake -DANDROID_TOOLCHAIN_NAME=x86-clang3.5 -DANDROID_NATIVE_API_LEVEL=android-9 -DANDROID_STRIP_EXEC=$STRIP_PATH ../
-cd ..
-cmake --build build_x86 --config Release
-mkdir -p plugin_lua53/Plugins/Android/libs/x86/
-cp build_x86/libxlua.so plugin_lua53/Plugins/Android/libs/x86/libxlua.so
+function build() {
+    API=$1
+    ABI=$2
+    TOOLCHAIN_ANME=$3
+    BUILD_PATH=build.Android.${ABI}
+    cmake -H. -B${BUILD_PATH} -DANDROID_ABI=${ABI} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_ANME}
+    cmake --build ${BUILD_PATH} --config Release
+    mkdir -p plugin_lua53/Plugins/Android/libs/${ABI}/
+    cp ${BUILD_PATH}/libxlua.so plugin_lua53/Plugins/Android/libs/${ABI}/libxlua.so
+}
 
-
+build android-16 armeabi-v7a arm-linux-androideabi-4.9
+build android-16 arm64-v8a  arm-linux-androideabi-clang
+build android-16 x86 x86-4.9
